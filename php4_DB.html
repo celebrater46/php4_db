@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>PHP4_DB</title>
+  <link rel="icon" href="favicon.ico">
+  <meta name="description" content="PHPノート">
+</head>
+<body>
+  <h1>PHP4_DB</h1>
+  <p>
+    &lt;?php<br>
+    <br>
+    // 01 <br>
+    <br>
+    php -v // バージョン確認<br>
+    mysql --version // バージョン確認<br>
+    <br>
+    <br>
+    // 02 DB設定 $#########$#########$#########$#########$#########<br>
+    <br>
+    DB = enin_db;<br>
+    <br>
+    // データベース操作用ユーザー作成<br>
+    grant all on [DB_name].* to [User_name]@localhost identified by &quot;password&quot;;<br>
+    <br>
+    enin<br>
+    1234<br>
+    <br>
+    // index.php も参照<br>
+    <br>
+    // 04 $#########$#########$#########$#########$#########<br>
+    <br>
+    // ビルトインサーバーの立ち上げ<br>
+    ip a // ipアドレスを見る<br>
+    <br>
+    php -S 192.168.33.10:8000<br>
+    <br>
+    // するとブラウザでphpを動かせるようになる（192.168.33.10:8000）！<br>
+    
+  </p>
+
+  <h2>index.php</h2>
+  <p>
+    &lt;?php<br>
+<br>
+// データバース関連の情報をphpに<br>
+<br>
+define(&quot;DB_DATABASE&quot;, &quot;enin_db&quot;);<br>
+define(&quot;DB_USERNAME&quot;, &quot;enin&quot;);<br>
+define(&quot;DB_PASSWORD&quot;, &quot;1234&quot;);<br>
+<br>
+// DSN　PDOにつなぐためのデータソースネーム<br>
+define(&quot;PDO_DSN&quot;, &quot;mysql:dbhost=localhost;dbname=&quot; . DB_DATABASE);<br>
+<br>
+<br>
+// 11<br>
+// class User {<br>
+//   // public $id; // 省略可能<br>
+//   // public $name; // 省略可能<br>
+//   // public $score; // 省略可能<br>
+//   public function show() {<br>
+//     echo &quot;$this-&gt;name ($this-&gt;score)&quot;;<br>
+//   }<br>
+// }<br>
+<br>
+<br>
+// PDOを使用する準備<br>
+ try {<br>
+  // connect<br>
+  $db = new PDO(PDO_DSN, DB_USERNAME, DB_PASSWORD);<br>
+  $db-&gt;setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);<br>
+<br>
+  // exec(); 結果を返さない安全なSQL<br>
+  // query(); 結果を返す、安全、何回も実行されないSQL<br>
+  // prepare(); 結果を返す、安全対策が必要、複数回実行されるSQL<br>
+<br>
+<br>
+<br>
+  // insert<br>
+  // $db-&gt;exec(&quot;insert into users (name, score) values ('enin', 55)&quot;);<br>
+  // echo &quot;user added.&quot;;<br>
+  <br>
+  // $stmt = $db-&gt;prepare(&quot;insert into users (name, score) values (?, ?)&quot;);<br>
+  // $stmt-&gt;execute([&quot;hideru&quot;, 43]); // ステートメントオブジェクト。こうやって外部から値を与えてやると安全らしい<br>
+  <br>
+  // $stmt = $db-&gt;prepare(&quot;insert into users (name, score) values (:name, :score)&quot;); // 名前つきパラメータ<br>
+  // $stmt-&gt;execute([&quot;:name&quot;=&gt;&quot;miyon&quot;, &quot;score&quot;=&gt;36]); // 名前つきパラメータは column が多くなってきて複雑化した時に管理しやすいメリット<br>
+  <br>
+  // bindValue()　値をbind!!<br>
+  // $stmt = $db-&gt;prepare(&quot;insert into users (name, score) values (?, ?)&quot;);<br>
+  // $stmt-&gt;execute([&quot;hideru&quot;, 43]);<br>
+  // $stmt-&gt;execute([&quot;hideru&quot;, 41]);<br>
+  // $stmt-&gt;execute([&quot;hideru&quot;, 54]);<br>
+<br>
+  // $name = &quot;hideru&quot;;<br>
+  // $stmt-&gt;bindValue(1, $name, PDO::PARAM_STR);<br>
+  // $stmt-&gt;bindValue(&quot;:name&quot;, $name, PDO::PARAM_STR); // 名前付きパラメータの書き方<br>
+  // $score = 41;<br>
+  // $stmt-&gt;bindValue(2, $score, PDO::PARAM_INT);<br>
+  // $stmt-&gt;execute();<br>
+  // $score = 54;<br>
+  // $stmt-&gt;bindValue(2, $score, PDO::PARAM_INT);<br>
+  // $stmt-&gt;execute();<br>
+<br>
+  // PARAM_NULL<br>
+  // PARAM_BOOL<br>
+<br>
+  //bindParam() 変数への参照をbind<br>
+  // $stmt-&gt;bindParam(2, $score, PDO::PARAM_INT);<br>
+  // $score = 52;<br>
+  // $stmt-&gt;execute();<br>
+  // $score = 56;<br>
+  // $stmt-&gt;execute();<br>
+  // $score = 59;<br>
+  // $stmt-&gt;execute();<br>
+  <br>
+  // echo &quot;inserted: &quot; . $db-&gt;lastInsertId(); // 挿入されたレコードのIDをひっぱってくる<br>
+<br>
+<br>
+<br>
+  // select all（データを抽出して表示）<br>
+  // $stmt = $db-&gt;query(&quot;select * from users&quot;);<br>
+<br>
+  // 条件付き抽出（50より大きいスコアの抽出）<br>
+  // $stmt = $db-&gt;prepare(&quot;select score from users where score &gt; ?&quot;);<br>
+  // $stmt-&gt;execute([50]);<br>
+<br>
+  // like句<br>
+  // $stmt = $db-&gt;prepare(&quot;select name from users where name like ?&quot;);<br>
+  // $stmt-&gt;execute([&quot;%m%&quot;]); // m を含む<br>
+  <br>
+  // スコア逆順にして上下何人か<br>
+  // $stmt = $db-&gt;prepare(&quot;select score from users order by score desc limit ?&quot;);<br>
+  // $stmt-&gt;execute([1]); // syntax error 数字が文字列として扱われるため<br>
+  // $stmt-&gt;bindValue(1, 3, PDO::PARAM_INT); // bindValue で値の型を指定する<br>
+  // $stmt-&gt;execute();<br>
+<br>
+  // $users = $stmt-&gt;fetchAll(PDO::FETCH_ASSOC);<br>
+  // $users = $stmt-&gt;fetchAll(PDO::FETCH_CLASS, &quot;User&quot;); // 11 FETCH_CLASS（引数のクラス名忘れずに）<br>
+  // foreach ($users as $user) {<br>
+  //   // var_dump($user);<br>
+  //   $user-&gt;show(); // 11 FETCH_CLASS User内の関数<br>
+  // }<br>
+  // echo $stmt-&gt;rowCount() . &quot;records found.&quot;; // 引っ張ってきたレコードの数<br>
+<br>
+<br>
+<br>
+  // update<br>
+  // $stmt = $db-&gt;prepare(&quot;update users set score = :score where name = :name&quot;);<br>
+  // $stmt-&gt;execute([<br>
+  //   &quot;:score&quot; =&gt; 100, // セミコロンじゃなくてカンマ！！<br>
+  //   &quot;:name&quot; =&gt; &quot;enin&quot;,<br>
+  // ]);<br>
+  // echo &quot;row updated: &quot; . $stmt-&gt;rowCount();<br>
+  <br>
+  // 原因不明のエラー。なぜかスコアの追加ができない。エラーコードはなし。ドットインストールのソースコードをコピペしてもだめだった。意味わからん。<br>
+  // ↑↑↑　何が原因不明やボケ。存在しない名前指定してデータいじれるわけないやんけ。データの追加じゃねえよ、更新だよアホ！！<br>
+  <br>
+  <br>
+  // delete<br>
+  // $stmt = $db-&gt;prepare(&quot;delete from users where name = :name&quot;);<br>
+  // $stmt-&gt;execute([<br>
+  //   &quot;:name&quot; =&gt; &quot;hideru&quot;,<br>
+  // ]);<br>
+  // echo &quot;row deleted: &quot; . $stmt-&gt;rowCount();<br>
+<br>
+<br>
+<br>
+  // transaction データの移動<br>
+  $db-&gt;beginTransaction();<br>
+  $db-&gt;exec(&quot;update users set score = score - 10 where name = 'enin'&quot;);<br>
+  $db-&gt;exec(&quot;update users set score = score + 10 where name = 'miyon'&quot;);<br>
+  $db-&gt;commit(); // 加算と減算、両方成功したら初めて反映させる、という意味<br>
+  <br>
+<br>
+<br>
+  // dicconnect<br>
+  $db = null;<br>
+<br>
+ } catch (PDOException $e) { // エラーを吐いたらこちらで出力<br>
+  $db-&gt;rollback(); // 13 トランザクション処理に失敗したらデータをもとに戻す<br>
+   echo $e-&gt;getMessage();<br>
+   exit;<br>
+ }<br>
+
+  </p>
+</body>
+</html>
